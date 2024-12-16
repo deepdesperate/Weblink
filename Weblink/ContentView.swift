@@ -8,14 +8,30 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @State private var readingViewModel = ReadingDataViewModel()
+    @State private var selection: ReadingItem? = nil
+    
+    @Environment(\.scenePhase) var scenePhase
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationSplitView{
+            ReadingListView(readingViewModel: readingViewModel, selection: $selection)
+        } detail: {
+            if let selection{
+                ReadingDetailView(reading: selection, readingViewModel: readingViewModel)
+            }else {
+                ContentUnavailableView("Select a Reading Item", systemImage: "book")
+            }
         }
-        .padding()
+        .onChange(of: scenePhase) { _, phase in
+            switch phase{
+            case .active: readingViewModel.load()
+            case .background, .inactive: readingViewModel.save()
+            @unknown default:
+                break
+            }
+        }
     }
 }
 
